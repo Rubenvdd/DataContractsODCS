@@ -19,6 +19,7 @@ __pycache__/
 
 # Generated exports (rebuild from contracts)
 exports/
+*.xlsx
 
 # OS
 .DS_Store
