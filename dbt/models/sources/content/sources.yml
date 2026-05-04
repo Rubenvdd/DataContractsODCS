@@ -1,0 +1,154 @@
+version: 2
+sources:
+- name: melodify__content
+  meta:
+    owner: content-catalog-team
+  description: 'Provides the music catalog including artists, tracks, and albums.
+    Supports
+
+    content discovery, recommendation engines, and catalog analytics.'
+  schema: main
+  tables:
+  - name: artists
+    description: Artist master data. One row per artist on the platform.
+    columns:
+    - name: artist_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: varchar
+      description: Unique artist identifier
+      meta:
+        classification: public
+    - name: artist_name
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Display name of the artist
+      meta:
+        classification: public
+    - name: genre
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Primary genre of the artist
+      meta:
+        classification: public
+    - name: country
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Country of origin (ISO 3166-1 alpha-2)
+      meta:
+        classification: public
+    - name: active_since
+      data_tests:
+      - not_null
+      data_type: integer
+      description: Year the artist joined the platform
+      meta:
+        classification: public
+    - name: verified
+      data_tests:
+      - not_null
+      data_type: boolean
+      description: Whether the artist account is verified
+      meta:
+        classification: public
+  - name: tracks
+    description: Track catalog. One row per track available on the platform.
+    columns:
+    - name: track_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: varchar
+      description: Unique track identifier
+      meta:
+        classification: public
+    - name: title
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Track title
+      meta:
+        classification: public
+    - name: artist_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Foreign key to artists table
+      meta:
+        classification: public
+    - name: album_id
+      data_type: varchar
+      description: Foreign key to albums table. Null for singles.
+      meta:
+        classification: public
+    - name: duration_seconds
+      data_tests:
+      - not_null
+      data_type: integer
+      description: Track duration in seconds
+      meta:
+        classification: public
+    - name: genre
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Track genre
+      meta:
+        classification: public
+    - name: release_date
+      data_tests:
+      - not_null
+      data_type: date
+      description: Date the track was released on the platform
+      meta:
+        classification: public
+    - name: is_explicit
+      data_tests:
+      - not_null
+      data_type: boolean
+      description: Whether the track contains explicit content
+      meta:
+        classification: public
+  - name: albums
+    description: Album catalog. One row per album.
+    columns:
+    - name: album_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: varchar
+      description: Unique album identifier
+      meta:
+        classification: public
+    - name: title
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Album title
+      meta:
+        classification: public
+    - name: artist_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Foreign key to artists table
+      meta:
+        classification: public
+    - name: release_date
+      data_tests:
+      - not_null
+      data_type: date
+      description: Album release date
+      meta:
+        classification: public
+    - name: total_tracks
+      data_tests:
+      - not_null
+      data_type: integer
+      description: Number of tracks on the album
+      meta:
+        classification: public

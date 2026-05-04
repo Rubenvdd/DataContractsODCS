@@ -1,0 +1,244 @@
+checks for albums:
+- schema:
+    fail:
+      when required column missing:
+      - album_id
+    name: albums__album_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        album_id: varchar
+    name: albums__album_id__field_type
+- missing_count(album_id) = 0:
+    name: albums__album_id__field_required
+- duplicate_count(album_id) = 0:
+    name: albums__album_id__field_unique
+- schema:
+    fail:
+      when required column missing:
+      - title
+    name: albums__title__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        title: varchar
+    name: albums__title__field_type
+- missing_count(title) = 0:
+    name: albums__title__field_required
+- schema:
+    fail:
+      when required column missing:
+      - artist_id
+    name: albums__artist_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        artist_id: varchar
+    name: albums__artist_id__field_type
+- missing_count(artist_id) = 0:
+    name: albums__artist_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - release_date
+    name: albums__release_date__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        release_date: date
+    name: albums__release_date__field_type
+- missing_count(release_date) = 0:
+    name: albums__release_date__field_required
+- schema:
+    fail:
+      when required column missing:
+      - total_tracks
+    name: albums__total_tracks__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        total_tracks: integer
+    name: albums__total_tracks__field_type
+- missing_count(total_tracks) = 0:
+    name: albums__total_tracks__field_required
+checks for artists:
+- schema:
+    fail:
+      when required column missing:
+      - artist_id
+    name: artists__artist_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        artist_id: varchar
+    name: artists__artist_id__field_type
+- missing_count(artist_id) = 0:
+    name: artists__artist_id__field_required
+- duplicate_count(artist_id) = 0:
+    name: artists__artist_id__field_unique
+- schema:
+    fail:
+      when required column missing:
+      - artist_name
+    name: artists__artist_name__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        artist_name: varchar
+    name: artists__artist_name__field_type
+- missing_count(artist_name) = 0:
+    name: artists__artist_name__field_required
+- schema:
+    fail:
+      when required column missing:
+      - genre
+    name: artists__genre__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        genre: varchar
+    name: artists__genre__field_type
+- missing_count(genre) = 0:
+    name: artists__genre__field_required
+- schema:
+    fail:
+      when required column missing:
+      - country
+    name: artists__country__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        country: varchar
+    name: artists__country__field_type
+- missing_count(country) = 0:
+    name: artists__country__field_required
+- schema:
+    fail:
+      when required column missing:
+      - active_since
+    name: artists__active_since__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        active_since: integer
+    name: artists__active_since__field_type
+- missing_count(active_since) = 0:
+    name: artists__active_since__field_required
+- schema:
+    fail:
+      when required column missing:
+      - verified
+    name: artists__verified__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        verified: boolean
+    name: artists__verified__field_type
+- missing_count(verified) = 0:
+    name: artists__verified__field_required
+- row_count > 5:
+    name: artists__row_count
+checks for tracks:
+- schema:
+    fail:
+      when required column missing:
+      - track_id
+    name: tracks__track_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        track_id: varchar
+    name: tracks__track_id__field_type
+- missing_count(track_id) = 0:
+    name: tracks__track_id__field_required
+- duplicate_count(track_id) = 0:
+    name: tracks__track_id__field_unique
+- schema:
+    fail:
+      when required column missing:
+      - title
+    name: tracks__title__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        title: varchar
+    name: tracks__title__field_type
+- missing_count(title) = 0:
+    name: tracks__title__field_required
+- schema:
+    fail:
+      when required column missing:
+      - artist_id
+    name: tracks__artist_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        artist_id: varchar
+    name: tracks__artist_id__field_type
+- missing_count(artist_id) = 0:
+    name: tracks__artist_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - album_id
+    name: tracks__album_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        album_id: varchar
+    name: tracks__album_id__field_type
+- schema:
+    fail:
+      when required column missing:
+      - duration_seconds
+    name: tracks__duration_seconds__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        duration_seconds: integer
+    name: tracks__duration_seconds__field_type
+- missing_count(duration_seconds) = 0:
+    name: tracks__duration_seconds__field_required
+- tracks__duration_seconds__quality_sql_0 = 0:
+    name: tracks__duration_seconds__quality_sql_0
+    tracks__duration_seconds__quality_sql_0 query: SELECT COUNT(*) FROM tracks WHERE
+      duration_seconds <= 0
+- schema:
+    fail:
+      when required column missing:
+      - genre
+    name: tracks__genre__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        genre: varchar
+    name: tracks__genre__field_type
+- missing_count(genre) = 0:
+    name: tracks__genre__field_required
+- schema:
+    fail:
+      when required column missing:
+      - release_date
+    name: tracks__release_date__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        release_date: date
+    name: tracks__release_date__field_type
+- missing_count(release_date) = 0:
+    name: tracks__release_date__field_required
+- schema:
+    fail:
+      when required column missing:
+      - is_explicit
+    name: tracks__is_explicit__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        is_explicit: boolean
+    name: tracks__is_explicit__field_type
+- missing_count(is_explicit) = 0:
+    name: tracks__is_explicit__field_required
+- row_count > 10:
+    name: tracks__row_count
+
