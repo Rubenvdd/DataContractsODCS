@@ -1,0 +1,60 @@
+version: 2
+models:
+  - name: dim_listeners
+    config:
+      materialized: table
+      contract:
+        enforced: true
+    description: >
+      Listener dimension enriched with current subscription details.
+      One row per registered listener. Owned by the listeners domain.
+    columns:
+      - name: listener_id
+        data_type: VARCHAR
+        description: Unique listener identifier
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: listener_name
+        data_type: VARCHAR
+        description: Full display name
+        constraints:
+          - type: not_null
+        tags: [pii]
+      - name: email
+        data_type: VARCHAR
+        description: Email address
+        tags: [pii]
+      - name: country
+        data_type: VARCHAR
+        description: ISO 3166-1 alpha-2 country code
+        constraints:
+          - type: not_null
+      - name: signup_date
+        data_type: DATE
+        description: Registration date
+        constraints:
+          - type: not_null
+      - name: gdpr_consent_date
+        data_type: DATE
+        description: GDPR consent date, null if not yet recorded
+      - name: is_active
+        data_type: BOOLEAN
+        description: Whether the account is currently active
+        constraints:
+          - type: not_null
+      - name: current_subscription_id
+        data_type: VARCHAR
+        description: Most recent subscription ID
+      - name: current_tier
+        data_type: VARCHAR
+        description: Current subscription tier
+      - name: subscription_start_date
+        data_type: DATE
+        description: Start date of current subscription
+      - name: subscription_end_date
+        data_type: DATE
+        description: End date of current subscription, null if active
+      - name: current_monthly_price_eur
+        data_type: DOUBLE
+        description: Monthly price of current subscription in EUR

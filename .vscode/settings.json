@@ -1,0 +1,17 @@
+{
+    "workbench.editorAssociations": {
+        "*.parquet": "duckdb.dataFileViewer",
+        "*.csv": "duckdb.dataFileViewer",
+        "*.tsv": "duckdb.dataFileViewer",
+        "*.duckdb": "duckdb.tableViewer"
+    },
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/bitol-io/open-data-contract-standard/main/schema/odcs-json-schema-v3.1.0.json": [
+            "**/*.odcs.yaml"
+        ]
+    },
+    "files.associations": {
+        "*.odcs.yaml": "yaml"
+    },
+    "editor.formatOnSave": true
+}

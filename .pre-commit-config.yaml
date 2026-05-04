@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: lint-contracts
+        name: Lint Data Contracts (ODCS)
+        entry: uv run datacontract lint
+        language: system
+        files: 'contracts/.*/datacontract\.odcs\.yaml$'
+        pass_filenames: true
+        verbose: true

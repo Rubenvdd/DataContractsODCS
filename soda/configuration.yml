@@ -1,0 +1,3 @@
+data_source melodify:
+  type: duckdb
+  path: dbt/melodify.duckdb

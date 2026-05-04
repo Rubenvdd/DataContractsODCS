@@ -1,0 +1,29 @@
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+dbt/profiles.yml
+dbt/*.duckdb
+
+# Logs anywhere
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Soda
+.soda/
+
+# Generated exports (rebuild from contracts)
+exports/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+test-contract.yaml
+

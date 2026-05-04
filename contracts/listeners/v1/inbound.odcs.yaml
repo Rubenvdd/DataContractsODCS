@@ -1,0 +1,310 @@
+# ===========================================================================
+# Melodify — Listeners Domain Contract
+# Owner: User Platform Team
+# ===========================================================================
+# This contract defines the listener and subscription data products.
+# It is the single source of truth for schema, quality, and governance.
+#
+# Reference: Jones Ch. 9 — "the data contract is the single source of truth"
+# Reference: Sanderson Ch. 5 — "contract definition" component
+# ===========================================================================
+
+kind: DataContract
+apiVersion: v3.1.0
+id: melodify__listeners
+name: Melodify Listeners
+version: 1.0.0
+domain: listeners
+status: active
+
+description:
+  purpose: >
+    Provides listener profile and subscription data for the Melodify platform.
+    Supports user analytics, churn prediction, and personalization.
+  limitations: >
+    Synthetic data for POC purposes. Not real user data.
+    GDPR consent tracking is illustrative only.
+  usage: >
+    Internal analytics and reporting only.
+    PII fields (listener_name, email) must not be exposed to external systems.
+
+tenant: Melodify
+
+# ---------------------------------------------------------------------------
+# Server configuration — where the data lives
+# ---------------------------------------------------------------------------
+servers:
+  - server: local-duckdb
+    type: duckdb
+    database: ../duckdb/melodify.duckdb
+    schema: main
+
+# ---------------------------------------------------------------------------
+# Schema — the data product interface
+# ---------------------------------------------------------------------------
+schema:
+  # === LISTENERS TABLE ===
+  - name: listeners
+    physicalName: listeners
+    physicalType: table
+    description: >
+      Core listener profile data. One row per registered listener.
+      Contains PII fields that require governance controls.
+    tags:
+      - pii
+      - master-data
+      - gdpr
+    properties:
+      - name: listener_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique identifier for each listener (format: L followed by 3 digits)"
+        classification: internal
+        examples:
+          - "L001"
+          - "L015"
+
+      - name: listener_name
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Full display name of the listener"
+        classification: restricted
+        tags:
+          - pii
+        customProperties:
+          - property: anonymizationStrategy
+            value: pseudonymization
+
+      - name: email
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Email address of the listener"
+        classification: restricted
+        tags:
+          - pii
+        customProperties:
+          - property: anonymizationStrategy
+            value: hashing
+        quality:
+          - type: custom
+            engine: soda
+            implementation: |
+              checks for listeners:
+                - invalid_count(email) = 0:
+                    valid format: email
+            description: "Email must be a valid email format"
+            dimension: conformity
+            severity: warning
+
+      - name: country
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "ISO 3166-1 alpha-2 country code"
+        classification: public
+        examples:
+          - "NL"
+          - "DE"
+          - "FR"
+
+      - name: signup_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Date the listener registered on the platform"
+        classification: internal
+
+      - name: gdpr_consent_date
+        logicalType: date
+        physicalType: date
+        required: false
+        description: "Date the listener gave GDPR consent. Null if consent not yet recorded."
+        classification: internal
+
+      - name: is_active
+        logicalType: boolean
+        physicalType: boolean
+        required: true
+        description: "Whether the listener account is currently active"
+        classification: internal
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 5
+        description: "Listeners table must have at least 5 records"
+        dimension: completeness
+        severity: error
+
+  # === SUBSCRIPTIONS TABLE ===
+  - name: subscriptions
+    physicalName: subscriptions
+    physicalType: table
+    description: >
+      Subscription history for each listener. One row per subscription period.
+      Current subscriptions have a null end_date.
+    tags:
+      - transactional
+      - revenue
+    relationships:
+      - type: foreignKey
+        from:
+          - subscriptions.listener_id
+        to:
+          - listeners.listener_id
+        customProperties:
+          - property: description
+            value: "Each subscription belongs to one listener"
+          - property: cardinality
+            value: "many-to-one"
+    properties:
+      - name: subscription_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique identifier for each subscription record"
+        classification: internal
+        examples:
+          - "S001"
+
+      - name: listener_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Foreign key to the listeners table"
+        classification: internal
+
+      - name: tier
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Subscription tier"
+        classification: public
+        quality:
+          - type: sql
+            query: "SELECT COUNT(*) FROM subscriptions WHERE tier NOT IN ('free', 'student', 'premium', 'family')"
+            mustBe: 0
+            description: "Tier must be one of the defined subscription levels"
+            dimension: conformity
+            severity: error
+
+      - name: start_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Start date of the subscription period"
+        classification: internal
+
+      - name: end_date
+        logicalType: date
+        physicalType: date
+        required: false
+        description: "End date of the subscription. Null means currently active."
+        classification: internal
+
+      - name: monthly_price_eur
+        logicalType: number
+        physicalType: double
+        required: true
+        description: "Monthly price in EUR for this subscription tier"
+        classification: internal
+        quality:
+          - type: sql
+            query: "SELECT COUNT(*) FROM subscriptions WHERE monthly_price_eur < 0"
+            mustBe: 0
+            description: "Price must be zero or positive"
+            dimension: conformity
+            severity: error
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 10
+        description: "Subscriptions table must have at least 10 records"
+        dimension: completeness
+        severity: error
+
+# ---------------------------------------------------------------------------
+# SLA Properties
+# ---------------------------------------------------------------------------
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    description: "Data is refreshed daily"
+  - property: timeOfAvailability
+    value: "08:00+01:00"
+    description: "Data available by 8 AM CET"
+    driver: analytics
+  - property: retention
+    value: 3
+    unit: y
+    description: "Data retained for 3 years"
+  - property: generalAvailability
+    value: "2024-01-01T00:00:00+01:00"
+
+# ---------------------------------------------------------------------------
+# Team
+# ---------------------------------------------------------------------------
+team:
+  name: user-platform-team
+  description: "Owns listener profile and subscription data"
+  members:
+    - username: j.vanderberg
+      role: Data Product Owner
+      dateIn: "2024-01-01"
+    - username: a.deplank
+      role: Data Engineer
+      dateIn: "2024-01-01"
+
+# ---------------------------------------------------------------------------
+# Roles
+# ---------------------------------------------------------------------------
+roles:
+  - role: analytics_reader
+    access: read
+    description: "Read access for analytics team"
+    firstLevelApprovers: j.vanderberg
+  - role: ml_engineer
+    access: read
+    description: "Read access for ML training pipelines"
+    firstLevelApprovers: j.vanderberg
+
+# ---------------------------------------------------------------------------
+# Support
+# ---------------------------------------------------------------------------
+support:
+  - channel: "#melodify-listeners-data"
+    tool: slack
+  - channel: data-platform-support
+    tool: email
+    url: mailto:data-platform@melodify.example.com
+
+# ---------------------------------------------------------------------------
+# Tags
+# ---------------------------------------------------------------------------
+tags:
+  - listeners
+  - subscriptions
+  - pii
+  - gdpr
+
+# ---------------------------------------------------------------------------
+# Custom Properties
+# ---------------------------------------------------------------------------
+customProperties:
+  - property: dataClassification
+    value: confidential
+  - property: regulatoryScope
+    value: GDPR
+
+contractCreatedTs: "2024-01-15T10:00:00+01:00"

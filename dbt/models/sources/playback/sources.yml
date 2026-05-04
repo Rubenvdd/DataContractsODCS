@@ -1,0 +1,103 @@
+version: 2
+sources:
+- name: melodify__playback
+  meta:
+    owner: engagement-analytics-team
+  description: 'Provides playback event data and playlist compositions. Supports engagement
+
+    analytics, recommendation training, and royalty calculations.'
+  schema: main
+  tables:
+  - name: play_events
+    description: 'Individual track play events. One row per play. High-volume table
+
+      â€” the core of engagement analytics.'
+    columns:
+    - name: event_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: varchar
+      description: Unique identifier for each play event
+      meta:
+        classification: internal
+    - name: listener_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: FK to listeners domain
+      meta:
+        classification: internal
+    - name: track_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: FK to content domain
+      meta:
+        classification: internal
+    - name: played_at
+      data_tests:
+      - not_null
+      data_type: timestamp
+      description: Timestamp when the track started playing
+      meta:
+        classification: internal
+    - name: duration_listened_seconds
+      data_tests:
+      - not_null
+      data_type: integer
+      description: How many seconds the listener actually listened
+      meta:
+        classification: internal
+    - name: source
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Client source of the play event
+      meta:
+        classification: internal
+  - name: playlist_tracks
+    description: Playlist compositions. Links listeners, playlists, and tracks.
+    columns:
+    - name: playlist_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Playlist identifier
+      meta:
+        classification: internal
+    - name: playlist_name
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Display name of the playlist
+      meta:
+        classification: internal
+    - name: listener_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: FK to listeners domain â€” the playlist owner
+      meta:
+        classification: internal
+    - name: track_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: FK to content domain
+      meta:
+        classification: internal
+    - name: position
+      data_tests:
+      - not_null
+      data_type: integer
+      description: Position of the track within the playlist (1-based)
+      meta:
+        classification: internal
+    - name: added_at
+      data_tests:
+      - not_null
+      data_type: timestamp
+      description: When the track was added to the playlist
+      meta:
+        classification: internal

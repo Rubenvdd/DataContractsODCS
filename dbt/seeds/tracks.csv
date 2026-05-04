@@ -1,0 +1,23 @@
+track_id,title,artist_id,album_id,duration_seconds,genre,release_date,is_explicit
+T001,Windmill Dreams,A001,AL001,245,indie-rock,2023-03-15,false
+T002,Morning Light,A001,AL001,198,indie-rock,2023-03-15,false
+T003,Blue Note Evening,A002,AL002,312,jazz,2022-11-01,false
+T004,Café Stories,A002,AL002,287,jazz,2022-11-01,false
+T005,Neon Highway,A003,AL003,195,electronic,2023-06-20,false
+T006,Digital Dawn,A003,AL003,223,electronic,2023-06-20,false
+T007,Sevilla Sun,A004,AL004,267,flamenco,2023-01-10,false
+T008,Dancing Shadows,A004,AL004,234,flamenco,2023-01-10,false
+T009,Aurora Borealis,A005,AL005,301,synthwave,2023-08-05,false
+T010,Midnight Drive,A005,AL005,278,synthwave,2023-08-05,false
+T011,Galway Rain,A006,AL006,256,folk,2022-05-20,false
+T012,Emerald Fields,A006,AL006,212,folk,2022-05-20,false
+T013,Shibuya Nights,A007,AL007,189,j-pop,2023-09-01,false
+T014,Cherry Blossom,A007,AL007,203,j-pop,2023-09-01,false
+T015,Milano Groove,A008,AL008,342,house,2023-04-12,false
+T016,Rooftop Session,A008,AL008,298,house,2023-04-12,true
+T017,Fado do Mar,A009,AL009,276,fado,2022-08-30,false
+T018,Lisboa Nights,A009,AL009,245,fado,2022-08-30,false
+T019,Moldau Suite,A010,AL010,480,classical,2021-12-01,false
+T020,Prague Morning,A010,AL010,390,classical,2021-12-01,false
+T021,Silent Forest,A011,,180,ambient,2023-10-15,false
+T022,Deep Current,A012,AL011,-30,techno,2023-07-22,false

@@ -1,0 +1,61 @@
+version: 2
+models:
+  - name: fct_play_events
+    config:
+      materialized: table
+      contract:
+        enforced: true
+    description: >
+      Play event fact table enriched with track and artist context.
+      One row per play event. Owned by the playback domain,
+      consumes content domain data via ref().
+    columns:
+      - name: event_id
+        data_type: VARCHAR
+        description: Unique event identifier
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: listener_id
+        data_type: VARCHAR
+        description: Listener who played the track
+        constraints:
+          - type: not_null
+      - name: track_id
+        data_type: VARCHAR
+        description: Track that was played
+        constraints:
+          - type: not_null
+      - name: played_at
+        data_type: TIMESTAMP
+        description: Timestamp of the play event
+        constraints:
+          - type: not_null
+      - name: duration_listened_seconds
+        data_type: INTEGER
+        description: How long the listener played the track in seconds
+        constraints:
+          - type: not_null
+      - name: play_source
+        data_type: VARCHAR
+        description: How the track was accessed
+        constraints:
+          - type: not_null
+      - name: track_title
+        data_type: VARCHAR
+        description: Title of the track played
+      - name: track_genre
+        data_type: VARCHAR
+        description: Genre of the track played
+      - name: track_duration_seconds
+        data_type: INTEGER
+        description: Full duration of the track in seconds
+      - name: track_is_explicit
+        data_type: BOOLEAN
+        description: Whether the track contains explicit content
+      - name: artist_id
+        data_type: VARCHAR
+        description: Artist of the track played
+      - name: artist_name
+        data_type: VARCHAR
+        description: Name of the artist

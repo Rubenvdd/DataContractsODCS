@@ -1,0 +1,344 @@
+# ===========================================================================
+# Melodify Content Catalog — v2 Contract (Phase 3.2 Demo)
+#
+# This contract is used for breaking change detection demos in Phase 3.2.
+# It is NOT deployed through the orchestrator — the orchestrator still uses v1.
+#
+# Changes vs v1 (planted for demo purposes):
+#   BREAKING #1: Removed required field 'is_explicit' from tracks
+#   BREAKING #2: Renamed 'artist_name' to 'name' in artists
+#                (shown as remove artist_name + add name)
+#   NON-BREAKING #1: Added optional field 'popularity_score' to tracks
+#   NON-BREAKING #2: Added new schema 'playlists'
+# ===========================================================================
+
+kind: DataContract
+apiVersion: v3.1.0
+id: melodify__content
+name: Melodify Content Catalog
+version: 2.0.0
+domain: content
+status: active
+
+description:
+  purpose: >
+    Provides the music catalog including artists, tracks, and albums.
+    Supports content discovery, recommendation engines, and catalog analytics.
+  limitations: Synthetic data for POC purposes.
+  usage: Available to all internal teams. No PII — public classification.
+
+tenant: Melodify
+
+servers:
+  - server: local-duckdb
+    type: duckdb
+    database: ../duckdb/melodify.duckdb
+    schema: main
+
+schema:
+  # === ARTISTS TABLE ===
+  # BREAKING CHANGE: artist_name renamed to name
+  - name: artists
+    physicalName: artists
+    physicalType: table
+    description: "Artist master data. One row per artist on the platform."
+    tags:
+      - master-data
+      - catalog
+    properties:
+      - name: artist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique artist identifier"
+        classification: public
+
+      # BREAKING: artist_name removed. Replaced by 'name' below.
+      # Consumers referencing artists.artist_name will break.
+
+      - name: name
+        logicalType: string
+        physicalType: varchar
+        required: false
+        description: "Display name of the artist (renamed from artist_name in v1)"
+        classification: public
+
+      - name: genre
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Primary genre of the artist"
+        classification: public
+
+      - name: country
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Country of origin (ISO 3166-1 alpha-2)"
+        classification: public
+
+      - name: active_since
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Year the artist joined the platform"
+        classification: public
+
+      - name: verified
+        logicalType: boolean
+        physicalType: boolean
+        required: true
+        description: "Whether the artist account is verified"
+        classification: public
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 5
+        description: "Artists table must have at least 5 records"
+        dimension: completeness
+        severity: error
+
+  # === TRACKS TABLE ===
+  # BREAKING CHANGE: is_explicit removed
+  # NON-BREAKING CHANGE: popularity_score added (optional)
+  - name: tracks
+    physicalName: tracks
+    physicalType: table
+    description: "Track catalog. One row per track available on the platform."
+    tags:
+      - catalog
+      - content
+    relationships:
+      - type: foreignKey
+        from:
+          - tracks.artist_id
+        to:
+          - artists.artist_id
+        customProperties:
+          - property: cardinality
+            value: "many-to-one"
+    properties:
+      - name: track_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique track identifier"
+        classification: public
+
+      - name: title
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Track title"
+        classification: public
+
+      - name: artist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Foreign key to artists table"
+        classification: public
+
+      - name: album_id
+        logicalType: string
+        physicalType: varchar
+        required: false
+        description: "Foreign key to albums table. Null for singles."
+        classification: public
+
+      - name: duration_seconds
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Track duration in seconds"
+        classification: public
+        quality:
+          - type: sql
+            query: "SELECT COUNT(*) FROM tracks WHERE duration_seconds <= 0"
+            mustBe: 0
+            description: "Duration must be positive"
+            dimension: conformity
+            severity: error
+
+      - name: genre
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Track genre"
+        classification: public
+
+      - name: release_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Date the track was released on the platform"
+        classification: public
+
+      # BREAKING: is_explicit removed from v2.
+      # Consumers depending on tracks.is_explicit will break.
+
+      # NON-BREAKING: popularity_score is a new optional field.
+      - name: popularity_score
+        logicalType: integer
+        physicalType: integer
+        required: false
+        description: "Relative popularity score (0-100). Optional — not available for all tracks."
+        classification: public
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 10
+        description: "Tracks table must have at least 10 records"
+        dimension: completeness
+        severity: error
+
+  # === ALBUMS TABLE ===
+  - name: albums
+    physicalName: albums
+    physicalType: table
+    description: "Album catalog. One row per album."
+    tags:
+      - catalog
+      - content
+    relationships:
+      - type: foreignKey
+        from:
+          - albums.artist_id
+        to:
+          - artists.artist_id
+    properties:
+      - name: album_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique album identifier"
+        classification: public
+
+      - name: title
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Album title"
+        classification: public
+
+      - name: artist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Foreign key to artists table"
+        classification: public
+
+      - name: release_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Album release date"
+        classification: public
+
+      - name: total_tracks
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Number of tracks on the album"
+        classification: public
+
+  # === PLAYLISTS TABLE === (NON-BREAKING: new schema added in v2)
+  - name: playlists
+    physicalName: playlists
+    physicalType: table
+    description: "Playlist catalog. One row per playlist created on the platform."
+    tags:
+      - catalog
+      - engagement
+    properties:
+      - name: playlist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique playlist identifier"
+        classification: public
+        examples:
+          - "P001"
+          - "P042"
+
+      - name: playlist_name
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Display name of the playlist"
+        classification: public
+
+      - name: created_by_listener_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "FK to listeners.listener_id"
+        classification: internal
+
+      - name: created_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Date the playlist was created"
+        classification: public
+
+      - name: is_public
+        logicalType: boolean
+        physicalType: boolean
+        required: true
+        description: "Whether the playlist is publicly viewable"
+        classification: public
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 0
+        description: "Playlists table must have at least 1 record"
+        dimension: completeness
+        severity: error
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+  - property: retention
+    value: 5
+    unit: y
+
+team:
+  name: content-catalog-team
+  description: "Owns the music catalog data"
+  members:
+    - username: m.dejong
+      role: Data Product Owner
+      dateIn: "2024-01-01"
+
+roles:
+  - role: catalog_reader
+    access: read
+    firstLevelApprovers: m.dejong
+
+tags:
+  - content
+  - catalog
+  - music
+
+customProperties:
+  - property: dataClassification
+    value: public
+
+contractCreatedTs: "2024-01-15T10:00:00+01:00"

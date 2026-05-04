@@ -1,0 +1,13 @@
+artist_id,artist_name,genre,country,active_since,verified
+A001,The Windmills,indie-rock,NL,2018,true
+A002,Café Noir,jazz,FR,2015,true
+A003,Stellar Drift,electronic,DE,2020,true
+A004,Rosa Flamenca,flamenco,ES,2012,true
+A005,Nordic Pulse,synthwave,SE,2019,true
+A006,Dublin Stories,folk,IE,2016,true
+A007,Tokyo Lights,j-pop,JP,2021,true
+A008,Milano Beats,house,IT,2017,true
+A009,Porto Soul,fado,PT,2014,true
+A010,Praha Strings,classical,CZ,2010,true
+A011,Silent Grove,ambient,DK,2022,false
+A012,Volt & Wire,techno,DE,2019,true

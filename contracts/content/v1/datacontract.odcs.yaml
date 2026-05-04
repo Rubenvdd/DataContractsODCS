@@ -1,0 +1,262 @@
+kind: DataContract
+apiVersion: v3.1.0
+id: melodify__content
+name: Melodify Content Catalog
+version: 1.0.0
+domain: content
+status: active
+
+description:
+  purpose: >
+    Provides the music catalog including artists, tracks, and albums.
+    Supports content discovery, recommendation engines, and catalog analytics.
+  limitations: Synthetic data for POC purposes.
+  usage: Available to all internal teams. No PII — public classification.
+
+tenant: Melodify
+
+servers:
+  - server: local-duckdb
+    type: duckdb
+    database: ../duckdb/melodify.duckdb
+    schema: main
+
+schema:
+  # === ARTISTS TABLE ===
+  - name: artists
+    physicalName: artists
+    physicalType: table
+    description: "Artist master data. One row per artist on the platform."
+    tags:
+      - master-data
+      - catalog
+    properties:
+      - name: artist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique artist identifier"
+        classification: public
+
+      - name: artist_name
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Display name of the artist"
+        classification: public
+
+      - name: genre
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Primary genre of the artist"
+        classification: public
+
+      - name: country
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Country of origin (ISO 3166-1 alpha-2)"
+        classification: public
+
+      - name: active_since
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Year the artist joined the platform"
+        classification: public
+
+      - name: verified
+        logicalType: boolean
+        physicalType: boolean
+        required: true
+        description: "Whether the artist account is verified"
+        classification: public
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 5
+        description: "Artists table must have at least 5 records"
+        dimension: completeness
+        severity: error
+
+  # === TRACKS TABLE ===
+  - name: tracks
+    physicalName: tracks
+    physicalType: table
+    description: "Track catalog. One row per track available on the platform."
+    tags:
+      - catalog
+      - content
+    relationships:
+      - type: foreignKey
+        from:
+          - tracks.artist_id
+        to:
+          - artists.artist_id
+        customProperties:
+          - property: cardinality
+            value: "many-to-one"
+    properties:
+      - name: track_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique track identifier"
+        classification: public
+
+      - name: title
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Track title"
+        classification: public
+
+      - name: artist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Foreign key to artists table"
+        classification: public
+
+      - name: album_id
+        logicalType: string
+        physicalType: varchar
+        required: false
+        description: "Foreign key to albums table. Null for singles."
+        classification: public
+
+      - name: duration_seconds
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Track duration in seconds"
+        classification: public
+        quality:
+          - type: sql
+            query: "SELECT COUNT(*) FROM tracks WHERE duration_seconds <= 0"
+            mustBe: 0
+            description: "Duration must be positive"
+            dimension: conformity
+            severity: error
+
+      - name: genre
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Track genre"
+        classification: public
+
+      - name: release_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Date the track was released on the platform"
+        classification: public
+
+      - name: is_explicit
+        logicalType: boolean
+        physicalType: boolean
+        required: true
+        description: "Whether the track contains explicit content"
+        classification: public
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 10
+        description: "Tracks table must have at least 10 records"
+        dimension: completeness
+        severity: error
+
+  # === ALBUMS TABLE ===
+  - name: albums
+    physicalName: albums
+    physicalType: table
+    description: "Album catalog. One row per album."
+    tags:
+      - catalog
+      - content
+    relationships:
+      - type: foreignKey
+        from:
+          - albums.artist_id
+        to:
+          - artists.artist_id
+    properties:
+      - name: album_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique album identifier"
+        classification: public
+
+      - name: title
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Album title"
+        classification: public
+
+      - name: artist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Foreign key to artists table"
+        classification: public
+
+      - name: release_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Album release date"
+        classification: public
+
+      - name: total_tracks
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Number of tracks on the album"
+        classification: public
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+  - property: retention
+    value: 5
+    unit: y
+
+team:
+  name: content-catalog-team
+  description: "Owns the music catalog data"
+  members:
+    - username: m.dejong
+      role: Data Product Owner
+      dateIn: "2024-01-01"
+
+roles:
+  - role: catalog_reader
+    access: read
+    firstLevelApprovers: m.dejong
+
+tags:
+  - content
+  - catalog
+  - music
+
+customProperties:
+  - property: dataClassification
+    value: public
+
+contractCreatedTs: "2024-01-15T10:00:00+01:00"

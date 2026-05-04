@@ -1,0 +1,173 @@
+checks for listeners:
+- schema:
+    fail:
+      when required column missing:
+      - listener_id
+    name: listeners__listener_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        listener_id: varchar
+    name: listeners__listener_id__field_type
+- missing_count(listener_id) = 0:
+    name: listeners__listener_id__field_required
+- duplicate_count(listener_id) = 0:
+    name: listeners__listener_id__field_unique
+- schema:
+    fail:
+      when required column missing:
+      - listener_name
+    name: listeners__listener_name__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        listener_name: varchar
+    name: listeners__listener_name__field_type
+- missing_count(listener_name) = 0:
+    name: listeners__listener_name__field_required
+- schema:
+    fail:
+      when required column missing:
+      - email
+    name: listeners__email__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        email: varchar
+    name: listeners__email__field_type
+- missing_count(email) = 0:
+    name: listeners__email__field_required
+- invalid_count(email) = 0:
+    valid format: email
+- schema:
+    fail:
+      when required column missing:
+      - country
+    name: listeners__country__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        country: varchar
+    name: listeners__country__field_type
+- missing_count(country) = 0:
+    name: listeners__country__field_required
+- schema:
+    fail:
+      when required column missing:
+      - signup_date
+    name: listeners__signup_date__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        signup_date: date
+    name: listeners__signup_date__field_type
+- missing_count(signup_date) = 0:
+    name: listeners__signup_date__field_required
+- schema:
+    fail:
+      when required column missing:
+      - gdpr_consent_date
+    name: listeners__gdpr_consent_date__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        gdpr_consent_date: date
+    name: listeners__gdpr_consent_date__field_type
+- schema:
+    fail:
+      when required column missing:
+      - is_active
+    name: listeners__is_active__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        is_active: boolean
+    name: listeners__is_active__field_type
+- missing_count(is_active) = 0:
+    name: listeners__is_active__field_required
+- row_count > 5:
+    name: listeners__row_count
+checks for subscriptions:
+- schema:
+    fail:
+      when required column missing:
+      - subscription_id
+    name: subscriptions__subscription_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        subscription_id: varchar
+    name: subscriptions__subscription_id__field_type
+- missing_count(subscription_id) = 0:
+    name: subscriptions__subscription_id__field_required
+- duplicate_count(subscription_id) = 0:
+    name: subscriptions__subscription_id__field_unique
+- schema:
+    fail:
+      when required column missing:
+      - listener_id
+    name: subscriptions__listener_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        listener_id: varchar
+    name: subscriptions__listener_id__field_type
+- missing_count(listener_id) = 0:
+    name: subscriptions__listener_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - tier
+    name: subscriptions__tier__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        tier: varchar
+    name: subscriptions__tier__field_type
+- missing_count(tier) = 0:
+    name: subscriptions__tier__field_required
+- subscriptions__tier__quality_sql_0 = 0:
+    name: subscriptions__tier__quality_sql_0
+    subscriptions__tier__quality_sql_0 query: SELECT COUNT(*) FROM subscriptions WHERE
+      tier NOT IN ('free', 'student', 'premium', 'family')
+- schema:
+    fail:
+      when required column missing:
+      - start_date
+    name: subscriptions__start_date__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        start_date: date
+    name: subscriptions__start_date__field_type
+- missing_count(start_date) = 0:
+    name: subscriptions__start_date__field_required
+- schema:
+    fail:
+      when required column missing:
+      - end_date
+    name: subscriptions__end_date__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        end_date: date
+    name: subscriptions__end_date__field_type
+- schema:
+    fail:
+      when required column missing:
+      - monthly_price_eur
+    name: subscriptions__monthly_price_eur__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        monthly_price_eur: double
+    name: subscriptions__monthly_price_eur__field_type
+- missing_count(monthly_price_eur) = 0:
+    name: subscriptions__monthly_price_eur__field_required
+- subscriptions__monthly_price_eur__quality_sql_0 = 0:
+    name: subscriptions__monthly_price_eur__quality_sql_0
+    subscriptions__monthly_price_eur__quality_sql_0 query: SELECT COUNT(*) FROM subscriptions
+      WHERE monthly_price_eur < 0
+- row_count > 10:
+    name: subscriptions__row_count
+

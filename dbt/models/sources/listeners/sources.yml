@@ -1,0 +1,113 @@
+version: 2
+sources:
+- name: melodify__listeners
+  meta:
+    owner: user-platform-team
+  description: 'Provides listener profile and subscription data for the Melodify platform.
+
+    Supports user analytics, churn prediction, and personalization.'
+  schema: main
+  tables:
+  - name: listeners
+    description: 'Core listener profile data. One row per registered listener. Contains
+
+      PII fields that require governance controls.'
+    columns:
+    - name: listener_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: varchar
+      description: 'Unique identifier for each listener (format: L followed by 3 digits)'
+      meta:
+        classification: internal
+    - name: listener_name
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Full display name of the listener
+      meta:
+        classification: restricted
+      tags:
+      - pii
+    - name: email
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Email address of the listener
+      meta:
+        classification: restricted
+      tags:
+      - pii
+    - name: country
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: ISO 3166-1 alpha-2 country code
+      meta:
+        classification: public
+    - name: signup_date
+      data_tests:
+      - not_null
+      data_type: date
+      description: Date the listener registered on the platform
+      meta:
+        classification: internal
+    - name: gdpr_consent_date
+      data_type: date
+      description: Date the listener gave GDPR consent. Null if consent not yet recorded.
+      meta:
+        classification: internal
+    - name: is_active
+      data_tests:
+      - not_null
+      data_type: boolean
+      description: Whether the listener account is currently active
+      meta:
+        classification: internal
+  - name: subscriptions
+    description: 'Subscription history for each listener. One row per subscription
+
+      period. Current subscriptions have a null end_date.'
+    columns:
+    - name: subscription_id
+      data_tests:
+      - not_null
+      - unique
+      data_type: varchar
+      description: Unique identifier for each subscription record
+      meta:
+        classification: internal
+    - name: listener_id
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Foreign key to the listeners table
+      meta:
+        classification: internal
+    - name: tier
+      data_tests:
+      - not_null
+      data_type: varchar
+      description: Subscription tier
+      meta:
+        classification: public
+    - name: start_date
+      data_tests:
+      - not_null
+      data_type: date
+      description: Start date of the subscription period
+      meta:
+        classification: internal
+    - name: end_date
+      data_type: date
+      description: End date of the subscription. Null means currently active.
+      meta:
+        classification: internal
+    - name: monthly_price_eur
+      data_tests:
+      - not_null
+      data_type: double
+      description: Monthly price in EUR for this subscription tier
+      meta:
+        classification: internal

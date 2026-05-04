@@ -1,0 +1,16 @@
+listener_id,listener_name,email,country,signup_date,gdpr_consent_date,is_active
+L001,Emma de Vries,emma.devries@email.nl,NL,2023-01-15,2023-01-15,true
+L002,Jan Bakker,jan.bakker@email.nl,NL,2023-02-20,2023-02-20,true
+L003,Sophie Martin,sophie.martin@email.fr,FR,2023-03-01,2023-03-01,true
+L004,Liam O'Connor,liam.oconnor@email.ie,IE,2023-03-15,2023-03-15,true
+L005,Maria Garcia,maria.garcia@email.es,ES,2023-04-01,2023-04-01,true
+L006,Felix Schmidt,felix.schmidt@email.de,DE,2023-04-10,2023-04-10,true
+L007,Anna Novak,anna.novak@email.cz,CZ,2023-05-05,2023-05-05,true
+L008,Pieter Jansen,,NL,2023-05-20,,true
+L009,Clara Dubois,clara.dubois@email.fr,FR,2023-06-01,2023-06-01,false
+L010,Thomas Mueller,thomas.mueller@email.de,DE,2023-06-15,2023-06-15,true
+L011,Yuki Tanaka,yuki.tanaka@email.jp,JP,2023-07-01,2023-07-01,true
+L012,Carlos Silva,carlos.silva@email.pt,PT,2023-07-20,2023-07-20,true
+L013,Eva Lindgren,eva.lindgren@email.se,SE,2023-08-01,2023-08-01,true
+L014,Marco Rossi,marco.rossi@email.it,IT,2023-08-15,2023-08-15,true
+L015,Freya Andersen,freya.andersen@email.dk,DK,2023-09-01,2023-09-01,true

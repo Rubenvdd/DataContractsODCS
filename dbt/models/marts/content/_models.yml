@@ -1,0 +1,71 @@
+version: 2
+models:
+  - name: dim_tracks
+    config:
+      materialized: table
+      contract:
+        enforced: true
+    description: >
+      Track dimension enriched with artist and album details.
+      One row per track. Owned by the content domain.
+    columns:
+      - name: track_id
+        data_type: VARCHAR
+        description: Unique track identifier
+        constraints:
+          - type: not_null
+          - type: unique
+      - name: track_title
+        data_type: VARCHAR
+        description: Track title
+        constraints:
+          - type: not_null
+      - name: duration_seconds
+        data_type: INTEGER
+        description: Track duration in seconds
+        constraints:
+          - type: not_null
+      - name: genre
+        data_type: VARCHAR
+        description: Track genre
+        constraints:
+          - type: not_null
+      - name: release_date
+        data_type: DATE
+        description: Platform release date
+        constraints:
+          - type: not_null
+      - name: is_explicit
+        data_type: BOOLEAN
+        description: Whether the track contains explicit content
+        constraints:
+          - type: not_null
+      - name: artist_id
+        data_type: VARCHAR
+        description: Artist identifier
+        constraints:
+          - type: not_null
+      - name: artist_name
+        data_type: VARCHAR
+        description: Artist display name
+        constraints:
+          - type: not_null
+      - name: artist_country
+        data_type: VARCHAR
+        description: Artist country of origin
+        constraints:
+          - type: not_null
+      - name: artist_verified
+        data_type: BOOLEAN
+        description: Whether the artist is verified
+        constraints:
+          - type: not_null
+      - name: album_id
+        data_type: VARCHAR
+        description: Album identifier, null for singles
+      - name: album_title
+        data_type: VARCHAR
+        description: Album title, null for singles
+      - name: album_total_tracks
+        data_type: INTEGER
+        description: Number of tracks on the album, null for singles

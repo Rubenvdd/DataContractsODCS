@@ -1,0 +1,298 @@
+# ===========================================================================
+# Melodify — Listeners Domain: Outbound Contract
+# Owner: User Platform Team
+# ===========================================================================
+# This contract defines the dim_listeners data product output.
+# It describes what the listeners domain guarantees to downstream consumers.
+#
+# The inbound contract (inbound.odcs.yaml) describes what the upstream
+# producer guarantees about source data. This outbound contract describes
+# the mart — the data product interface consumers build upon.
+#
+# Reference: Jones Ch. 7 — "the contract describes the data product output"
+# Reference: Dehghani Ch. 13 — data product as an addressable, trustworthy interface
+# Reference: STATE.md lesson #15 — "the contract describes the data product
+#   output (mart), not the internal pipeline"
+# ===========================================================================
+
+kind: DataContract
+apiVersion: v3.1.0
+id: melodify__listeners__dim_listeners
+name: Melodify Listeners — dim_listeners
+version: 1.0.0
+domain: listeners
+status: active
+
+description:
+  purpose: >
+    Listener dimension enriched with current subscription details.
+    One row per registered listener. Provides a single, consumer-ready
+    view combining listener profile and their most recent subscription.
+    Supports user analytics, churn prediction, and personalization dashboards.
+  limitations: >
+    Synthetic data for POC purposes. Not real user data.
+    Only the most recent subscription is included (determined by start_date desc).
+    Listeners without any subscription have null subscription fields.
+    The L008 listener has a null email — this is a known data quality issue
+    in the source that flows through to the mart.
+  usage: >
+    Consumer-ready dimension table. Use as-is for joins with fact tables
+    (e.g., fct_play_events). PII fields (listener_name, email) must not
+    be exposed to external systems without anonymization.
+
+tenant: Melodify
+
+# ---------------------------------------------------------------------------
+# Server configuration — where the data product lives
+# ---------------------------------------------------------------------------
+servers:
+  - server: local-duckdb
+    type: duckdb
+    database: ../duckdb/melodify.duckdb
+    schema: main
+
+# ---------------------------------------------------------------------------
+# Schema — the data product interface
+# ---------------------------------------------------------------------------
+schema:
+  - name: dim_listeners
+    physicalName: dim_listeners
+    physicalType: table
+    description: >
+      Listener dimension enriched with current subscription details.
+      One row per registered listener. Owned by the listeners domain.
+    tags:
+      - pii
+      - dimension
+      - data-product
+    properties:
+      # --- Listener profile fields (from stg_listeners) ---
+
+      - name: listener_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique listener identifier (format: L followed by 3 digits)"
+        classification: internal
+        examples:
+          - "L001"
+          - "L015"
+
+      - name: listener_name
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Full display name of the listener"
+        classification: restricted
+        tags:
+          - pii
+
+      - name: email
+        logicalType: string
+        physicalType: varchar
+        required: false
+        description: >
+          Email address of the listener. May be null for listeners with
+          missing source data (e.g., L008).
+        classification: restricted
+        tags:
+          - pii
+        quality:
+          - type: custom
+            engine: soda
+            implementation: |
+              checks for dim_listeners:
+                - invalid_count(email) = 0:
+                    valid format: email
+            description: "Non-null emails must be valid email format"
+            dimension: conformity
+            severity: warning
+
+      - name: country
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "ISO 3166-1 alpha-2 country code"
+        classification: public
+
+      - name: signup_date
+        logicalType: date
+        physicalType: date
+        required: true
+        description: "Date the listener registered on the platform"
+        classification: internal
+
+      - name: gdpr_consent_date
+        logicalType: date
+        physicalType: date
+        required: false
+        description: "Date the listener gave GDPR consent. Null if not yet recorded."
+        classification: internal
+
+      - name: is_active
+        logicalType: boolean
+        physicalType: boolean
+        required: true
+        description: "Whether the listener account is currently active"
+        classification: internal
+
+      # --- Current subscription fields (from stg_subscriptions via row_number) ---
+
+      - name: current_subscription_id
+        logicalType: string
+        physicalType: varchar
+        required: false
+        description: >
+          Subscription ID of the most recent subscription.
+          Null if the listener has no subscription history.
+        classification: internal
+
+      - name: current_tier
+        logicalType: string
+        physicalType: varchar
+        required: false
+        description: >
+          Current subscription tier. Null if no subscription.
+          Valid values when present: free, student, premium, family.
+        classification: public
+        quality:
+          - type: sql
+            query: >
+              SELECT COUNT(*) FROM dim_listeners
+              WHERE current_tier IS NOT NULL
+              AND current_tier NOT IN ('free', 'student', 'premium', 'family')
+            mustBe: 0
+            description: "Non-null tier must be one of the defined subscription levels"
+            dimension: conformity
+            severity: error
+
+      - name: subscription_start_date
+        logicalType: date
+        physicalType: date
+        required: false
+        description: "Start date of the current subscription. Null if no subscription."
+        classification: internal
+
+      - name: subscription_end_date
+        logicalType: date
+        physicalType: date
+        required: false
+        description: >
+          End date of the current subscription. Null means the subscription
+          is currently active or the listener has no subscription.
+        classification: internal
+
+      - name: current_monthly_price_eur
+        logicalType: number
+        physicalType: double
+        required: false
+        description: >
+          Monthly price in EUR for the current subscription tier.
+          Null if no subscription. Zero or positive when present.
+        classification: internal
+        quality:
+          - type: sql
+            query: >
+              SELECT COUNT(*) FROM dim_listeners
+              WHERE current_monthly_price_eur IS NOT NULL
+              AND current_monthly_price_eur < 0
+            mustBe: 0
+            description: "Price must be zero or positive when present"
+            dimension: conformity
+            severity: error
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 5
+        description: "dim_listeners must have at least 5 records"
+        dimension: completeness
+        severity: error
+
+# ---------------------------------------------------------------------------
+# SLA Properties
+# ---------------------------------------------------------------------------
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    description: "Data product is refreshed daily"
+  - property: timeOfAvailability
+    value: "09:00+01:00"
+    description: "Data product available by 9 AM CET (1 hour after source)"
+    driver: analytics
+  - property: retention
+    value: 3
+    unit: y
+    description: "Data retained for 3 years"
+  - property: generalAvailability
+    value: "2024-01-01T00:00:00+01:00"
+
+# ---------------------------------------------------------------------------
+# Team
+# ---------------------------------------------------------------------------
+team:
+  name: user-platform-team
+  description: "Owns listener profile and subscription data products"
+  members:
+    - username: j.vanderberg
+      role: Data Product Owner
+      dateIn: "2024-01-01"
+    - username: a.deplank
+      role: Data Engineer
+      dateIn: "2024-01-01"
+
+# ---------------------------------------------------------------------------
+# Roles
+# ---------------------------------------------------------------------------
+roles:
+  - role: analytics_reader
+    access: read
+    description: "Read access to the listener dimension"
+    firstLevelApprovers: j.vanderberg
+  - role: ml_engineer
+    access: read
+    description: "Read access for ML training pipelines"
+    firstLevelApprovers: j.vanderberg
+  - role: cross_domain_consumer
+    access: read
+    description: "Read access for other domains consuming dim_listeners"
+    firstLevelApprovers: j.vanderberg
+
+# ---------------------------------------------------------------------------
+# Support
+# ---------------------------------------------------------------------------
+support:
+  - channel: "#melodify-listeners-data"
+    tool: slack
+  - channel: data-platform-support
+    tool: email
+    url: mailto:data-platform@melodify.example.com
+
+# ---------------------------------------------------------------------------
+# Tags
+# ---------------------------------------------------------------------------
+tags:
+  - listeners
+  - dimension
+  - data-product
+  - pii
+  - gdpr
+
+# ---------------------------------------------------------------------------
+# Custom Properties
+# ---------------------------------------------------------------------------
+customProperties:
+  - property: dataClassification
+    value: confidential
+  - property: regulatoryScope
+    value: GDPR
+  - property: sourceContract
+    value: melodify__listeners
+  - property: materialization
+    value: table
+
+contractCreatedTs: "2024-01-15T10:00:00+01:00"

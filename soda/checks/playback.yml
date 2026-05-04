@@ -1,0 +1,159 @@
+checks for play_events:
+- schema:
+    fail:
+      when required column missing:
+      - event_id
+    name: play_events__event_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        event_id: varchar
+    name: play_events__event_id__field_type
+- missing_count(event_id) = 0:
+    name: play_events__event_id__field_required
+- duplicate_count(event_id) = 0:
+    name: play_events__event_id__field_unique
+- schema:
+    fail:
+      when required column missing:
+      - listener_id
+    name: play_events__listener_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        listener_id: varchar
+    name: play_events__listener_id__field_type
+- missing_count(listener_id) = 0:
+    name: play_events__listener_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - track_id
+    name: play_events__track_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        track_id: varchar
+    name: play_events__track_id__field_type
+- missing_count(track_id) = 0:
+    name: play_events__track_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - played_at
+    name: play_events__played_at__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        played_at: timestamp
+    name: play_events__played_at__field_type
+- missing_count(played_at) = 0:
+    name: play_events__played_at__field_required
+- schema:
+    fail:
+      when required column missing:
+      - duration_listened_seconds
+    name: play_events__duration_listened_seconds__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        duration_listened_seconds: integer
+    name: play_events__duration_listened_seconds__field_type
+- missing_count(duration_listened_seconds) = 0:
+    name: play_events__duration_listened_seconds__field_required
+- play_events__duration_listened_seconds__quality_sql_0 = 0:
+    name: play_events__duration_listened_seconds__quality_sql_0
+    play_events__duration_listened_seconds__quality_sql_0 query: SELECT COUNT(*) FROM
+      play_events WHERE duration_listened_seconds < 0
+- schema:
+    fail:
+      when required column missing:
+      - source
+    name: play_events__source__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        source: varchar
+    name: play_events__source__field_type
+- missing_count(source) = 0:
+    name: play_events__source__field_required
+- play_events__source__quality_sql_0 = 0:
+    name: play_events__source__quality_sql_0
+    play_events__source__quality_sql_0 query: SELECT COUNT(*) FROM play_events WHERE
+      source NOT IN ('mobile', 'web', 'desktop')
+- row_count > 10:
+    name: play_events__row_count
+checks for playlist_tracks:
+- schema:
+    fail:
+      when required column missing:
+      - playlist_id
+    name: playlist_tracks__playlist_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        playlist_id: varchar
+    name: playlist_tracks__playlist_id__field_type
+- missing_count(playlist_id) = 0:
+    name: playlist_tracks__playlist_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - playlist_name
+    name: playlist_tracks__playlist_name__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        playlist_name: varchar
+    name: playlist_tracks__playlist_name__field_type
+- missing_count(playlist_name) = 0:
+    name: playlist_tracks__playlist_name__field_required
+- schema:
+    fail:
+      when required column missing:
+      - listener_id
+    name: playlist_tracks__listener_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        listener_id: varchar
+    name: playlist_tracks__listener_id__field_type
+- missing_count(listener_id) = 0:
+    name: playlist_tracks__listener_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - track_id
+    name: playlist_tracks__track_id__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        track_id: varchar
+    name: playlist_tracks__track_id__field_type
+- missing_count(track_id) = 0:
+    name: playlist_tracks__track_id__field_required
+- schema:
+    fail:
+      when required column missing:
+      - position
+    name: playlist_tracks__position__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        position: integer
+    name: playlist_tracks__position__field_type
+- missing_count(position) = 0:
+    name: playlist_tracks__position__field_required
+- schema:
+    fail:
+      when required column missing:
+      - added_at
+    name: playlist_tracks__added_at__field_is_present
+- schema:
+    fail:
+      when wrong column type:
+        added_at: timestamp
+    name: playlist_tracks__added_at__field_type
+- missing_count(added_at) = 0:
+    name: playlist_tracks__added_at__field_required
+

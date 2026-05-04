@@ -1,0 +1,216 @@
+kind: DataContract
+apiVersion: v3.1.0
+id: melodify__playback
+name: Melodify Playback Events
+version: 1.0.0
+domain: playback
+status: active
+
+description:
+  purpose: >
+    Provides playback event data and playlist compositions.
+    Supports engagement analytics, recommendation training, and royalty calculations.
+  limitations: Synthetic data for POC purposes.
+  usage: >
+    Internal analytics only. Playback events are high-volume;
+    downstream consumers should query aggregated marts, not raw events.
+
+tenant: Melodify
+
+servers:
+  - server: local-duckdb
+    type: duckdb
+    database: ../duckdb/melodify.duckdb
+    schema: main
+
+schema:
+  # === PLAY EVENTS TABLE ===
+  - name: play_events
+    physicalName: play_events
+    physicalType: table
+    description: >
+      Individual track play events. One row per play.
+      High-volume table — the core of engagement analytics.
+    tags:
+      - events
+      - engagement
+      - high-volume
+    relationships:
+      - type: foreignKey
+        from:
+          - play_events.listener_id
+        to:
+          - listeners.listener_id
+        customProperties:
+          - property: description
+            value: "Cross-domain reference to Listeners domain"
+          - property: cardinality
+            value: "many-to-one"
+      - type: foreignKey
+        from:
+          - play_events.track_id
+        to:
+          - tracks.track_id
+        customProperties:
+          - property: description
+            value: "Cross-domain reference to Content domain"
+          - property: cardinality
+            value: "many-to-one"
+    properties:
+      - name: event_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: "Unique identifier for each play event"
+        classification: internal
+
+      - name: listener_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "FK to listeners domain"
+        classification: internal
+
+      - name: track_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "FK to content domain"
+        classification: internal
+
+      - name: played_at
+        logicalType: timestamp
+        physicalType: timestamp
+        required: true
+        description: "Timestamp when the track started playing"
+        classification: internal
+
+      - name: duration_listened_seconds
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "How many seconds the listener actually listened"
+        classification: internal
+        quality:
+          - type: sql
+            query: "SELECT COUNT(*) FROM play_events WHERE duration_listened_seconds < 0"
+            mustBe: 0
+            description: "Listen duration cannot be negative"
+            dimension: conformity
+            severity: error
+
+      - name: source
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Client source of the play event"
+        classification: internal
+        quality:
+          - type: sql
+            query: "SELECT COUNT(*) FROM play_events WHERE source NOT IN ('mobile', 'web', 'desktop')"
+            mustBe: 0
+            description: "Source must be a known client type"
+            dimension: conformity
+            severity: error
+
+    quality:
+      - type: library
+        metric: rowCount
+        mustBeGreaterThan: 10
+        description: "Play events table must have meaningful volume"
+        dimension: completeness
+        severity: error
+
+  # === PLAYLIST TRACKS TABLE ===
+  - name: playlist_tracks
+    physicalName: playlist_tracks
+    physicalType: table
+    description: "Playlist compositions. Links listeners, playlists, and tracks."
+    tags:
+      - engagement
+      - playlists
+    properties:
+      - name: playlist_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Playlist identifier"
+        classification: internal
+
+      - name: playlist_name
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "Display name of the playlist"
+        classification: internal
+
+      - name: listener_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "FK to listeners domain — the playlist owner"
+        classification: internal
+
+      - name: track_id
+        logicalType: string
+        physicalType: varchar
+        required: true
+        description: "FK to content domain"
+        classification: internal
+
+      - name: position
+        logicalType: integer
+        physicalType: integer
+        required: true
+        description: "Position of the track within the playlist (1-based)"
+        classification: internal
+
+      - name: added_at
+        logicalType: timestamp
+        physicalType: timestamp
+        required: true
+        description: "When the track was added to the playlist"
+        classification: internal
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+  - property: timeOfAvailability
+    value: "09:00+01:00"
+    driver: analytics
+  - property: retention
+    value: 1
+    unit: y
+    description: "Playback events retained for 1 year (shorter than master data)"
+
+team:
+  name: engagement-analytics-team
+  description: "Owns playback and engagement data products"
+  members:
+    - username: s.vanhout
+      role: Data Product Owner
+      dateIn: "2024-01-01"
+
+roles:
+  - role: engagement_reader
+    access: read
+    firstLevelApprovers: s.vanhout
+  - role: ml_training
+    access: read
+    description: "Access for recommendation model training"
+    firstLevelApprovers: s.vanhout
+
+tags:
+  - playback
+  - engagement
+  - events
+
+customProperties:
+  - property: dataClassification
+    value: internal
+
+contractCreatedTs: "2024-01-15T10:00:00+01:00"

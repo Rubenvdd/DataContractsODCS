@@ -1,0 +1,117 @@
+# Melodify data contracts POC — CI pipeline
+#
+# Runs the orchestrator once per domain on every push and PR.
+#
+# Two domains carry seeded data-quality violations and therefore run in
+# negative-test mode (exit 0 if the circuit breaker halts at the expected
+# stage, exit 20/21 on regressions):
+#
+#   content   → halts at soda_scan (T022: tracks.duration_seconds = -30,
+#                a semantic violation caught by Soda quality checks)
+#   listeners → halts at dbt_build (L008: listeners.email null,
+#                a structural violation caught by dbt source tests)
+#
+# This encodes Jones Ch. 10's layered-testing model directly into CI:
+# structural (dbt) and semantic (Soda) validation each have an asserted
+# expected-halt point. A regression at either layer — accidentally fixing
+# a seeded violation, or the violation escaping its expected layer — will
+# turn the check red.
+#
+# Playback has no seeded violation currently caught by any tool (PE025
+# will close that gap in Phase 3.4) and runs as a straight positive test.
+#
+# See scripts/run_pipeline.py for exit codes (10/11/12/13 for stage halts,
+# 20/21 for negative-test regressions) and STATE.md for the full failure-
+# mapping table.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-checks:
+    name: Contract checks (lint + breaking changes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint all contracts
+        run: |
+          CONTRACTS=(
+            "contracts/content/v1/datacontract.odcs.yaml"
+            "contracts/content/v2/datacontract.odcs.yaml"
+            "contracts/playback/v1/datacontract.odcs.yaml"
+            "contracts/listeners/v1/inbound.odcs.yaml"
+            "contracts/listeners/v1/outbound.odcs.yaml"
+          )
+          for contract in "${CONTRACTS[@]}"; do
+            PYTHONUTF8=1 uv run python -m datacontract.cli lint "$contract"
+          done
+
+      - name: Check breaking changes (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          set -e
+          CONTRACTS=(
+            "contracts/content/v1/datacontract.odcs.yaml"
+            "contracts/content/v2/datacontract.odcs.yaml"
+            "contracts/playback/v1/datacontract.odcs.yaml"
+            "contracts/listeners/v1/inbound.odcs.yaml"
+            "contracts/listeners/v1/outbound.odcs.yaml"
+          )
+          for contract in "${CONTRACTS[@]}"; do
+            if git show origin/main:"$contract" > /tmp/old_contract.yaml 2>/dev/null; then
+              PYTHONUTF8=1 uv run python scripts/check_breaking_changes.py \
+                /tmp/old_contract.yaml "$contract"
+            else
+              echo "New contract — skipping breaking change check: $contract"
+            fi
+          done
+
+  run:
+    name: run (${{ matrix.domain }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        domain: [content, playback, listeners]
+        include:
+          - domain: content
+            extra_args: "--expect-failure-at soda_scan"
+          - domain: listeners
+            extra_args: "--expect-failure-at dbt_build"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run pipeline (${{ matrix.domain }})
+        run: uv run python scripts/run_pipeline.py --domain ${{ matrix.domain }} ${{ matrix.extra_args }}
