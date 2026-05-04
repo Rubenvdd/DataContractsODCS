@@ -1,0 +1,6 @@
+melodify:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: melodify.duckdb
