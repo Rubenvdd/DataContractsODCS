@@ -1,4 +1,4 @@
-# Melodify — Data Contracts POC
+# Melodify - Data Contracts ODCS Meetup demo
 
 A proof-of-concept demonstrating **contract-driven data pipelines** using the Open Data Contract Standard (ODCS v3.1.0), dbt, Soda Core, and DuckDB.
 
