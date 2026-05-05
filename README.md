@@ -46,10 +46,7 @@ Four issues are planted in the seed data to demonstrate which layer catches what
 
 | Issue | What's wrong | dbt catches it? | Soda catches it? |
 |-------|-------------|-----------------|------------------|
-| L008 | Missing email in listeners | Yes — `not_null` | Yes — `field_required` |
-| S018 | Invalid subscription tier | No | Yes — `quality_sql` |
 | T022 | Negative track duration | No | Yes — `quality_sql` |
-| PE025 | Orphan foreign key in play_events | No | No — intentional gap |
 
 ## Quick start
 
