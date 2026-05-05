@@ -8,8 +8,8 @@ status: active
 
 description:
   purpose: >
-    Provides the music catalog including artists, tracks, and albums.
-    Supports content discovery, recommendation engines, and catalog analytics.
+    Provides the music catalog including artists, tracks, and albums. Supports
+    content discovery, recommendation engines, and catalog analytics.
   limitations: Synthetic data for POC purposes.
   usage: Available to all internal teams. No PII — public classification.
 
@@ -41,10 +41,10 @@ schema:
         description: "Unique artist identifier"
         classification: public
 
-      - name: artist_name
+      - name: name
         logicalType: string
         physicalType: varchar
-        required: true
+        required: false
         description: "Display name of the artist"
         classification: public
 
