@@ -58,10 +58,7 @@ import yaml
 #   (future) outbound contract for mart layer.
 # - Content and Playback use a single contract for both roles.
 # - The orchestrator must know which contract to use for which export type.
-#
-# Architectural reference:
-#   Jones Ch. 7 -- the contract is the single source of truth
-#   STATE.md -- "Two contracts serve two roles" (lesson #13)
+
 
 STAGES = {
     "lint":      "Lint",
@@ -245,8 +242,6 @@ def inject_schema_main(sources_yml_path: Path):
     server.schema field into the generated YAML. Without schema: main,
     dbt-duckdb treats the source name as a schema name, causing queries
     to compile to nonexistent schemas.
-
-    This is documented in STATE.md lessons learned #3 and #5.
 
     We use YAML parse+dump (not a regex) because:
     - The CLI export format varies in indentation across contracts
