@@ -20,17 +20,14 @@
 # Playback has no seeded violation currently caught by any tool (PE025
 # will close that gap in Phase 3.4) and runs as a straight positive test.
 #
-# See scripts/run_pipeline.py for exit codes (10/11/12/13 for stage halts,
-# 20/21 for negative-test regressions) and STATE.md for the full failure-
-# mapping table.
 
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -96,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        domain: [content, playback, listeners]
+        domain: [ content, playback, listeners ]
         include:
           - domain: content
             extra_args: "--expect-failure-at soda_scan"
@@ -114,4 +111,5 @@ jobs:
         run: uv sync --frozen
 
       - name: Run pipeline (${{ matrix.domain }})
-        run: uv run python scripts/run_pipeline.py --domain ${{ matrix.domain }} ${{ matrix.extra_args }}
+        run: uv run python scripts/run_pipeline.py --domain ${{ matrix.domain }} ${{
+          matrix.extra_args }}
